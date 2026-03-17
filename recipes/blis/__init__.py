@@ -7,6 +7,7 @@ class BlisRecipe(CythonRecipe):
     version = "1.3.3"
     url = "https://files.pythonhosted.org/packages/source/b/blis/blis-{version}.tar.gz"
     depends = ["python3"]
+    install_hostpython_prerequisites = ["numpy"]
 
     def get_recipe_env(self, plat):
         env = super().get_recipe_env(plat)
