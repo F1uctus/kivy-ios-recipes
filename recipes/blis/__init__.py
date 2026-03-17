@@ -29,6 +29,10 @@ class BlisRecipe(CythonRecipe):
     def get_recipe_env(self, plat):
         env = super().get_recipe_env(plat)
         env["BLIS_ARCH"] = "x86_64" if plat.arch == "x86_64" else "generic"
+        # blis uses BLIS_COMPILER for compiling its internal C sources (z/*.o).
+        # Force it to use the same cross-compiler wrapper as setuptools.
+        if "CC" in env:
+            env["BLIS_COMPILER"] = env["CC"]
         # Ensure distutils uses iOS sysconfig/platform tags (not host macOS tags)
         # when running build_ext under hostpython.
         sdk = env.get("PLATFORM_SDK") or "iphoneos"
