@@ -1,13 +1,19 @@
 from __future__ import annotations
 
-from kivy_ios.toolchain import CythonRecipe
+import sh
+
+from kivy_ios.toolchain import CythonRecipe, shprint
 
 
 class BlisRecipe(CythonRecipe):
     version = "1.3.3"
     url = "https://files.pythonhosted.org/packages/source/b/blis/blis-{version}.tar.gz"
     depends = ["python3"]
-    install_hostpython_prerequisites = ["numpy"]
+
+    def install_hostpython_prerequisites(self):
+        super().install_hostpython_prerequisites()
+        python = sh.Command(self.ctx.hostpython)
+        shprint(python, "-m", "pip", "install", "numpy==2.3.0")
 
     def get_recipe_env(self, plat):
         env = super().get_recipe_env(plat)
