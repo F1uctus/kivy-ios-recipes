@@ -136,13 +136,19 @@ class Python3Recipe(Recipe):
         plat = list(self.platforms_to_build)[0]
         build_env = self.get_build_env(plat)
         build_dir = self.get_build_dir(plat)
+        prefix = join(self.ctx.dist_dir, "root", "python3")
         shprint(
             sh.make,
             self.ctx.concurrent_make,
             "-C",
             build_dir,
             "install",
-            "prefix={}".format(join(self.ctx.dist_dir, "root", "python3")),
+            # CPython iOS installs as a framework and then rearranges headers via
+            # `frameworkinstallmobileheaders` using PYTHONFRAMEWORKPREFIX/INSTALLDIR.
+            # Point both at our chosen prefix so the header move doesn't fail.
+            "prefix={}".format(prefix),
+            "PYTHONFRAMEWORKPREFIX={}".format(prefix),
+            "PYTHONFRAMEWORKINSTALLDIR={}".format(join(prefix, "Python.framework")),
             _env=build_env,
         )
         self.reduce_python()
