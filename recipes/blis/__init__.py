@@ -35,9 +35,9 @@ class BlisRecipe(CythonRecipe):
         sdk = env.get("PLATFORM_SDK") or "iphoneos"
         arch = env.get("ARCH") or plat.arch
         target = (
-            f"{arch}-apple-ios-simulator"
+            f"{arch}-apple-ios13.0-simulator"
             if sdk == "iphonesimulator"
-            else f"{arch}-apple-ios"
+            else f"{arch}-apple-ios13.0"
         )
         env["BLIS_COMPILER"] = f"xcrun -sdk {sdk} clang -target {target}"
         # Ensure distutils uses iOS sysconfig/platform tags (not host macOS tags)
