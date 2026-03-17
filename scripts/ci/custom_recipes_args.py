@@ -20,7 +20,8 @@ def main() -> int:
     # We output one argument per line for safe re-use in bash.
     for name in recipe_names:
         p = repo_root / "recipes" / name
-        print(f'--add-custom-recipe {p}')
+        if p.is_dir():
+            print(f"--add-custom-recipe {p}")
     return 0
 
 
