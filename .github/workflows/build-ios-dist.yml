@@ -2,6 +2,15 @@ name: ios python dist build
 
 on:
   workflow_dispatch:
+    inputs:
+      platform:
+        description: "kivy-ios target platform"
+        required: true
+        default: "iphoneos-arm64"
+        type: choice
+        options:
+          - iphoneos-arm64
+          - iphonesimulator-arm64
   push:
     paths:
       - "**"
@@ -19,12 +28,8 @@ jobs:
     needs: verify-pins
     runs-on: macos-latest
     timeout-minutes: 120
-    strategy:
-      fail-fast: false
-      matrix:
-        platform:
-          - iphoneos-arm64
-          - iphonesimulator-arm64
+    env:
+      PLATFORM: ${{ github.event_name == 'workflow_dispatch' && inputs.platform || 'iphoneos-arm64' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -32,14 +37,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: "pip"
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: .ccache
-          key: ${{ runner.os }}-ccache-${{ matrix.platform }}-${{ github.sha }}
+          key: ${{ runner.os }}-ccache-${{ env.PLATFORM }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-ccache-${{ matrix.platform }}-
+            ${{ runner.os }}-ccache-${{ env.PLATFORM }}-
 
       - name: Install build deps (brew)
         run: |
@@ -59,7 +65,7 @@ jobs:
         run: |
           mkdir -p "${CCACHE_DIR}"
           CUSTOM_ARGS="$(python scripts/ci/custom_recipes_args.py | tr '\n' ' ')"
-          toolchain build python3 spacy --platform "${{ matrix.platform }}" ${CUSTOM_ARGS}
+          toolchain build python3 spacy --platform "${PLATFORM}" ${CUSTOM_ARGS}
 
       - name: Pack dist artifact
         run: |
@@ -70,7 +76,7 @@ jobs:
             cp -a dist ios-dist/dist
           fi
           cp -a pins.json ios-dist/
-          (cd ios-dist && zip -r ../ios-python-dist-${{ matrix.platform }}.zip .)
+          (cd ios-dist && zip -r ../ios-python-dist-${PLATFORM}.zip .)
 
       - name: Smoke test (hostpython)
         if: always()
@@ -90,6 +96,6 @@ jobs:
       - name: Upload dist artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ios-python-dist-${{ matrix.platform }}
-          path: ios-python-dist-${{ matrix.platform }}.zip
+          name: ios-python-dist-${{ env.PLATFORM }}
+          path: ios-python-dist-${{ env.PLATFORM }}.zip
 
