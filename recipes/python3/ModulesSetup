@@ -23,7 +23,6 @@ _codecs_jp cjkcodecs/_codecs_jp.c
 _codecs_kr cjkcodecs/_codecs_kr.c
 _codecs_tw cjkcodecs/_codecs_tw.c
 _contextvars _contextvarsmodule.c
-_crypt _cryptmodule.c
 _csv _csv.c
 _datetime _datetimemodule.c
 _elementtree _elementtree.c \
