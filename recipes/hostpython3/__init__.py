@@ -89,29 +89,6 @@ class Hostpython3Recipe(HostRecipe):
         shprint(hostpython, "-m", "ensurepip", "--upgrade")
         shprint(hostpython, "-m", "pip", "install", "-U", "pip", "setuptools")
 
-        self.apply_patch(
-            "allow-cflags-override.patch",
-            join(
-                self.ctx.dist_dir,
-                "hostpython3",
-                "lib",
-                f"python{self.ctx.hostpython_ver}",
-                "site-packages",
-                "setuptools",
-            ),
-        )
-        self.apply_patch(
-            "fix-ldshared-override.patch",
-            join(
-                self.ctx.dist_dir,
-                "hostpython3",
-                "lib",
-                f"python{self.ctx.hostpython_ver}",
-                "site-packages",
-                "setuptools",
-            ),
-        )
-
 
 recipe = Hostpython3Recipe()
 
