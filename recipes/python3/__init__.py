@@ -31,7 +31,6 @@ class Python3Recipe(Recipe):
     def prebuild_platform(self, plat):
         if self.has_marker("patched"):
             return
-        self.apply_patch("configure.patch")
         self.apply_patch("dynload_shlib.patch")
         self.copy_file("ModulesSetup", "Modules/Setup.local")
         self.append_file("ModulesSetup.mobile", "Modules/Setup.local")
