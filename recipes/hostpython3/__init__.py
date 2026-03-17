@@ -35,7 +35,6 @@ class Hostpython3Recipe(HostRecipe):
     def prebuild_platform(self, plat):
         if self.has_marker("patched"):
             return
-        self.apply_patch("disable_sysconfig_cflags.patch")
         self.copy_file("ModulesSetup", "Modules/Setup.local")
         self.set_marker("patched")
 
