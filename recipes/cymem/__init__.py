@@ -1,4 +1,7 @@
 import sh
+from fnmatch import filter as fnmatch_filter
+from os import walk
+from os.path import join
 
 from kivy_ios.toolchain import CythonRecipe, shprint
 
@@ -13,17 +16,15 @@ class CymemRecipe(CythonRecipe):
         python = sh.Command(self.ctx.hostpython)
         shprint(python, "-m", "pip", "install", "--upgrade", "cython")
 
-    def get_recipe_env(self, plat):
-        env = super().get_recipe_env(plat)
-        sdk = env.get("PLATFORM_SDK") or "iphoneos"
-        arch = env.get("ARCH") or plat.arch
-        host_plat = f"ios-13.0-{arch}-{sdk}"
-        env["_PYTHON_HOST_PLATFORM"] = host_plat
-        env["_PYTHON_SYSCONFIGDATA_NAME"] = "_sysconfigdata__ios_darwin"
-        env["_PYTHON_SYSCONFIGDATA_PATH"] = (
-            f"{self.ctx.build_dir}/python3/{sdk}-{arch}/Python-3.13.12/build/lib.{host_plat}-3.13"
-        )
-        return env
+    def biglink(self):
+        dirs = []
+        for root, _, filenames in walk(self.build_dir):
+            if fnmatch_filter(filenames, "*.so.libs"):
+                dirs.append(root)
+        if not dirs:
+            return
+        cmd = sh.Command(join(self.ctx.root_dir, "tools", "biglink"))
+        shprint(cmd, join(self.build_dir, f"lib{self.name}.a"), *dirs)
 
 
 recipe = CymemRecipe()
