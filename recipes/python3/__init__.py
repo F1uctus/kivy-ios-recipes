@@ -111,6 +111,9 @@ class Python3Recipe(Recipe):
             "ac_cv_func_clock_nanosleep=no",
             "ac_cv_func_splice=no",
             "ac_cv_func_mremap=no",
+            "ac_cv_func_posix_spawn_file_actions_addclosefrom_np=no",
+            "ac_cv_func_setns=no",
+            "ac_cv_func_unshare=no",
             "--host={}-apple-ios".format(py_arch),
             "--build=x86_64-apple-darwin",
             "--with-build-python={}".format(
