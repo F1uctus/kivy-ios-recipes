@@ -65,7 +65,7 @@ jobs:
         run: |
           mkdir -p "${CCACHE_DIR}"
           CUSTOM_ARGS="$(python scripts/ci/custom_recipes_args.py | tr '\n' ' ')"
-          toolchain build python3 spacy --platform "${PLATFORM}" ${CUSTOM_ARGS}
+          toolchain build python3 --platform "${PLATFORM}" ${CUSTOM_ARGS}
 
       - name: Pack dist artifact
         run: |
