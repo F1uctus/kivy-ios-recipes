@@ -1,28 +1,27 @@
-diff --git a/Python/dynload_shlib.c b/Python/dynload_shlib.c
---- a/Python/dynload_shlib.c
-+++ b/Python/dynload_shlib.c
-@@ -17,6 +17,10 @@
- #ifdef HAVE_DLFCN_H
+--- dynload_shlib.c.orig	2026-03-17 16:50:40.077846493 +0300
++++ Python-3.13.12/Python/dynload_shlib.c	2026-03-17 16:50:40.109846717 +0300
+@@ -22,6 +22,10 @@
  #include <dlfcn.h>
  #endif
-+
+ 
 +#if defined(__APPLE__)
 +#include <TargetConditionals.h>
 +#endif
- 
++
  #if (defined(__OpenBSD__) || defined(__NetBSD__)) && !defined(__ELF__)
  #define LEAD_UNDERSCORE "_"
-@@ -73,6 +77,16 @@
- 
+ #else
+@@ -69,6 +73,13 @@
      PyOS_snprintf(funcname, sizeof(funcname),
                    LEAD_UNDERSCORE "%.20s_%.200s", prefix, shortname);
-+
+ 
 +#if defined(__APPLE__) && defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
 +    /* On iOS, extension modules are linked statically into the app binary
 +       (kivy-ios converts the usual dynamic modules into static archives).
 +       dlopen() won't find them; resolve symbols from the main executable. */
 +    return (dl_funcptr)dlsym(RTLD_SELF, funcname);
 +#endif
- 
++
      if (fp != NULL) {
          struct _Py_stat_struct status;
+         if (_Py_fstat(fileno(fp), &status) == -1)
