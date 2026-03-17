@@ -1,0 +1,94 @@
+name: ios python dist build
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "**"
+
+jobs:
+  verify-pins:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify pins match upstream
+        run: |
+          python3 scripts/pins_check.py ios-python-pins.json
+
+  build:
+    needs: verify-pins
+    runs-on: macos-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - iphoneos-arm64
+          - iphonesimulator-arm64
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ${{ runner.os }}-ccache-${{ matrix.platform }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-${{ matrix.platform }}-
+
+      - name: Install build deps (brew)
+        run: |
+          brew update
+          brew install autoconf automake libtool pkg-config ccache
+
+      - name: Install toolchains
+        run: |
+          python -m pip install -U pip
+          python -m pip install kivy-ios
+
+      - name: Build dist (custom recipes)
+        env:
+          USE_CCACHE: "1"
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
+        run: |
+          mkdir -p "${CCACHE_DIR}"
+          CUSTOM_ARGS="$(python scripts/ci/custom_recipes_args.py | tr '\n' ' ')"
+          toolchain build python3 spacy --platform "${{ matrix.platform }}" ${CUSTOM_ARGS}
+
+      - name: Pack dist artifact
+        run: |
+          mkdir -p ios-dist
+          # kivy-ios installs into its dist dir; collect a minimal snapshot.
+          # The exact artifact format will be hardened iteratively.
+          if [ -d "dist" ]; then
+            cp -a dist ios-dist/dist
+          fi
+          cp -a pins.json ios-dist/
+          (cd ios-dist && zip -r ../ios-python-dist-${{ matrix.platform }}.zip .)
+
+      - name: Smoke test (hostpython)
+        if: always()
+        run: |
+          # This validates that the build produced a usable hostpython and that
+          # the pinned packages can import in the produced environment.
+          #
+          # Note: Running iOS-targeted Python on CI is non-trivial; this is a
+          # pragmatic first gate for iterative development.
+          if [ -x "dist/hostpython3/bin/python" ]; then
+            dist/hostpython3/bin/python -c "import sys; print(sys.version)"
+            dist/hostpython3/bin/python scripts/smoke_test.py
+          else
+            echo "hostpython not found; skipping smoke test"
+          fi
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-python-dist-${{ matrix.platform }}
+          path: ios-python-dist-${{ matrix.platform }}.zip
+

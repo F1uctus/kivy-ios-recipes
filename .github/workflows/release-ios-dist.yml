@@ -1,0 +1,27 @@
+name: ios python dist release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ios-python-dist-${{ github.run_number }}
+          name: ios-python-dist-${{ github.run_number }}
+          make_latest: true
+          files: |
+            artifacts/**/ios-python-dist-*.zip
+

@@ -1,0 +1,91 @@
+{
+  "name": "ios-python-dist-pins",
+  "source": {
+    "recipe_set": "p4a-recipes",
+    "workspace_path": "/mnt/d/Dev/dart/storyteller/p4a-recipes"
+  },
+  "python": {
+    "target_version": "3.13.12",
+    "recipes": {
+      "python3": {
+        "version": "3.13.12",
+        "source": "https://github.com/python/cpython/archive/refs/tags/v3.13.12.tar.gz"
+      },
+      "hostpython3": {
+        "version": "3.13.12",
+        "source": "https://github.com/python/cpython/archive/refs/tags/v3.13.12.tar.gz"
+      }
+    }
+  },
+  "packages": {
+    "spacy": {
+      "version": "3.8.11",
+      "source": "https://files.pythonhosted.org/packages/source/s/spacy/spacy-3.8.11.tar.gz",
+      "kind": "c-extension"
+    },
+    "thinc": {
+      "version": "8.3.10",
+      "source": "https://files.pythonhosted.org/packages/source/t/thinc/thinc-8.3.10.tar.gz",
+      "kind": "c-extension"
+    },
+    "cymem": {
+      "version": "2.0.13",
+      "source": "https://files.pythonhosted.org/packages/source/c/cymem/cymem-2.0.13.tar.gz",
+      "kind": "c-extension"
+    },
+    "preshed": {
+      "version": "3.0.12",
+      "source": "https://files.pythonhosted.org/packages/source/p/preshed/preshed-3.0.12.tar.gz",
+      "kind": "c-extension"
+    },
+    "murmurhash": {
+      "version": "1.0.15",
+      "source": "https://files.pythonhosted.org/packages/source/m/murmurhash/murmurhash-1.0.15.tar.gz",
+      "kind": "c-extension"
+    },
+    "srsly": {
+      "version": "2.5.2",
+      "source": "https://files.pythonhosted.org/packages/source/s/srsly/srsly-2.5.2.tar.gz",
+      "kind": "c-extension"
+    },
+    "blis": {
+      "version": "1.3.3",
+      "source": "https://files.pythonhosted.org/packages/source/b/blis/blis-1.3.3.tar.gz",
+      "kind": "c-extension"
+    },
+    "numpy": {
+      "version": "2.3.0",
+      "source": "https://github.com/numpy/numpy",
+      "kind": "c-extension"
+    },
+    "pydantic": {
+      "version": "2.13.0b2",
+      "source": "https://github.com/pydantic/pydantic/archive/refs/tags/v2.13.0b2.zip",
+      "kind": "python"
+    },
+    "pydantic-core": {
+      "version": "2.42.0",
+      "source": "https://files.pythonhosted.org/packages/source/p/pydantic-core/pydantic_core-2.42.0.tar.gz",
+      "kind": "rust-extension"
+    },
+    "requests": {
+      "version": "2.32.5",
+      "source": "https://files.pythonhosted.org/packages/source/r/requests/requests-2.32.5.tar.gz",
+      "kind": "python"
+    },
+    "MarkupSafe": {
+      "version": "3.0.3",
+      "source": "https://files.pythonhosted.org/packages/7e/99/7690b6d4034fffd95959cbe0c02de8deb3098cc577c67bb6a24fe5d7caa7/markupsafe-3.0.3.tar.gz",
+      "kind": "c-extension"
+    },
+    "cython": {
+      "version": "3.2.4",
+      "source": "https://github.com/cython/cython/archive/3.2.4.tar.gz",
+      "kind": "build-tool"
+    }
+  },
+  "ci_explicit_requirements": {
+    "origin": "p4a-recipes/.github/workflows/p4a-spacy.yml",
+    "requirements_csv": "pydantic==2.13.0b2,spacy==3.8.11,pymorphy3,pymorphy3-dicts-ru,DAWG-Python,appdirs,pyparsing"
+  }
+}
