@@ -32,6 +32,7 @@ class Python3Recipe(Recipe):
         if self.has_marker("patched"):
             return
         self.apply_patch("dynload_shlib.patch")
+        self.apply_patch("fileutils_closefrom_ios.patch")
         self.copy_file("ModulesSetup", "Modules/Setup.local")
         self.append_file("ModulesSetup.mobile", "Modules/Setup.local")
         self.set_marker("patched")

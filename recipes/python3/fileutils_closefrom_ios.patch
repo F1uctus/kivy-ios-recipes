@@ -1,0 +1,21 @@
+--- fileutils.c.orig	2026-03-17 17:16:08.332492473 +0300
++++ Python-3.13.12/Python/fileutils.c	2026-03-17 17:16:08.368492668 +0300
+@@ -2998,9 +2998,18 @@
+     else
+ #endif /* HAVE_CLOSE_RANGE */
+ #ifdef USE_CLOSEFROM
++#if defined(__APPLE__)
++#include <TargetConditionals.h>
++#endif
+     if (last >= sysconf(_SC_OPEN_MAX)) {
+         /* Any errors encountered while closing file descriptors are ignored */
++#if defined(__APPLE__) && defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
++        for (int i = first; i <= last; i++) {
++            (void)close(i);
++        }
++#else
+         (void)closefrom(first);
++#endif
+     }
+     else
+ #endif /* USE_CLOSEFROM */
