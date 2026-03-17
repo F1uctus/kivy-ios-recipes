@@ -156,31 +156,36 @@ class Python3Recipe(Recipe):
     def reduce_python(self):
         logger.info("Reduce python")
         logger.info("Remove files unlikely to be used")
+        pyver_dir = join(self.ctx.dist_dir, "root", "python3", "lib", "python3.13")
+        config_dir_name = None
+        try:
+            candidates = sorted(
+                d
+                for d in os.listdir(pyver_dir)
+                if d.startswith("config-3.13-") and os.path.isdir(join(pyver_dir, d))
+            )
+            if candidates:
+                config_dir_name = candidates[0]
+        except FileNotFoundError:
+            config_dir_name = None
+
         with cd(join(self.ctx.dist_dir, "root", "python3")):
             sh.rm("-rf", "bin", "share")
 
-        with cd(
-            join(
-                self.ctx.dist_dir,
-                "root",
-                "python3",
-                "lib",
-                "python3.13",
-                "config-3.13-darwin",
-            )
-        ):
-            sh.rm(
-                "libpython3.13.a",
-                "python.o",
-                "config.c.in",
-                "makesetup",
-                "install-sh",
-            )
+        if config_dir_name is not None:
+            with cd(join(pyver_dir, config_dir_name)):
+                sh.rm(
+                    "libpython3.13.a",
+                    "python.o",
+                    "config.c.in",
+                    "makesetup",
+                    "install-sh",
+                )
 
         with cd(join(self.ctx.dist_dir, "root", "python3", "lib")):
             sh.rm("-rf", "pkgconfig", "libpython3.13.a")
 
-        with cd(join(self.ctx.dist_dir, "root", "python3", "lib", "python3.13")):
+        with cd(pyver_dir):
             sh.rm(
                 "-rf",
                 "wsgiref",
@@ -207,11 +212,13 @@ class Python3Recipe(Recipe):
             sh.find(".", "-name", "__pycache__", "-type", "d", "-delete")
 
             logger.info("Create a python3.13.zip")
-            sh.mv("config-3.13-darwin", "..")
+            if config_dir_name is not None:
+                sh.mv(config_dir_name, "..")
             sh.mv("site-packages", "..")
             sh.zip("-r", "../python313.zip", sh.glob("*"))
             sh.rm("-rf", sh.glob("*"))
-            sh.mv("../config-3.13-darwin", ".")
+            if config_dir_name is not None:
+                sh.mv(join("..", config_dir_name), ".")
             sh.mv("../site-packages", ".")
 
 
