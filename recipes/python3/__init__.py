@@ -47,6 +47,9 @@ class Python3Recipe(Recipe):
             os.environ["PATH"],
         )
         build_env["CFLAGS"] += " --sysroot={}".format(plat.sysroot)
+        # CPython's configure will otherwise look for a host-triplet `*-cpp`
+        # binary (e.g. arm64-apple-ios-cpp), which doesn't exist in our toolchain.
+        build_env["CPP"] = "{} -E".format(build_env["CC"])
         return build_env
 
     def build_platform(self, plat):
