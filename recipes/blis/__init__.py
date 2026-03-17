@@ -22,8 +22,14 @@ class BlisRecipe(CythonRecipe):
         # when running build_ext under hostpython.
         sdk = env.get("PLATFORM_SDK") or "iphoneos"
         arch = env.get("ARCH") or plat.arch
-        env["_PYTHON_HOST_PLATFORM"] = f"ios-13.0-{arch}-{sdk}"
+        host_plat = f"ios-13.0-{arch}-{sdk}"
+        env["_PYTHON_HOST_PLATFORM"] = host_plat
         env["_PYTHON_SYSCONFIGDATA_NAME"] = "_sysconfigdata__ios_darwin"
+        # The sysconfigdata module isn't part of hostpython; point at the one
+        # generated when building the target python3.
+        env["_PYTHON_SYSCONFIGDATA_PATH"] = (
+            f"{self.ctx.build_dir}/python3/{sdk}-{arch}/Python-3.13.12/build/lib.{host_plat}-3.13"
+        )
         return env
 
 
