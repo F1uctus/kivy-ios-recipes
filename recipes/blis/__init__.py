@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sh
 
+from kivy_ios.context_managers import cd
 from kivy_ios.toolchain import CythonRecipe, shprint
 
 
@@ -14,6 +15,16 @@ class BlisRecipe(CythonRecipe):
         super().install_hostpython_prerequisites()
         python = sh.Command(self.ctx.hostpython)
         shprint(python, "-m", "pip", "install", "numpy==2.3.0")
+
+    def cythonize_build(self):
+        if not self.cythonize:
+            return
+        # Keep module names as `cy` / `py` for kivy-ios biglink matching.
+        # The default cythonize walk passes "blis/cy.pyx", which triggers
+        # renaming to `blis_cy`/`blis_py` in tools/cythonize.py.
+        with cd(f"{self.build_dir}/blis"):
+            self.cythonize_file("cy.pyx")
+            self.cythonize_file("py.pyx")
 
     def get_recipe_env(self, plat):
         env = super().get_recipe_env(plat)
