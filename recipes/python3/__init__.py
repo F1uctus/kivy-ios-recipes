@@ -114,8 +114,8 @@ class Python3Recipe(Recipe):
             ),
             "--prefix={}".format(prefix),
             "--without-ensurepip",
-            "--with-system-ffi",
             "--enable-ipv6",
+            "--enable-framework",
             "PYTHON_FOR_BUILD=_PYTHON_PROJECT_BASE=$(abs_builddir) "
             "_PYTHON_HOST_PLATFORM=$(_PYTHON_HOST_PLATFORM) "
             "PYTHONPATH=$(shell test -f pybuilddir.txt && echo $(abs_builddir)/`cat pybuilddir.txt`:)$(srcdir)/Lib "
