@@ -48,7 +48,6 @@ _socket socketmodule.c
 _ssl _ssl.c -lssl -DUSE_SSL
 _struct _struct.c
 array arraymodule.c
-audioop audioop.c
 binascii binascii.c
 fcntl fcntlmodule.c
 grp grpmodule.c
