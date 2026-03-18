@@ -11,6 +11,11 @@ on:
         options:
           - iphoneos-arm64
           - iphonesimulator-arm64
+      build_spacy:
+        description: "Also build spaCy stack and run strict spaCy smoke test"
+        required: false
+        default: false
+        type: boolean
   push:
     paths:
       - "**"
@@ -30,6 +35,7 @@ jobs:
     timeout-minutes: 120
     env:
       PLATFORM: ${{ github.event_name == 'workflow_dispatch' && inputs.platform || 'iphoneos-arm64' }}
+      BUILD_SPACY: ${{ github.event_name == 'workflow_dispatch' && inputs.build_spacy && '1' || '0' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -67,6 +73,16 @@ jobs:
           CUSTOM_ARGS="$(python scripts/ci/custom_recipes_args.py | tr '\n' ' ')"
           toolchain build python3 --platform "${PLATFORM}" ${CUSTOM_ARGS}
 
+      - name: Build spaCy stack (optional, reuses python3 dist)
+        if: env.BUILD_SPACY == '1'
+        env:
+          USE_CCACHE: "1"
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
+        run: |
+          mkdir -p "${CCACHE_DIR}"
+          CUSTOM_ARGS="$(python scripts/ci/custom_recipes_args.py | tr '\n' ' ')"
+          toolchain build spacy --platform "${PLATFORM}" ${CUSTOM_ARGS}
+
       - name: Pack dist artifact
         run: |
           mkdir -p ios-dist
@@ -91,6 +107,15 @@ jobs:
             dist/hostpython3/bin/python scripts/smoke_test.py
           else
             echo "hostpython not found; skipping smoke test"
+          fi
+
+      - name: Smoke test spaCy (strict, optional)
+        if: always() && env.BUILD_SPACY == '1'
+        run: |
+          if [ -x "dist/hostpython3/bin/python" ]; then
+            dist/hostpython3/bin/python scripts/smoke_test_spacy.py
+          else
+            echo "hostpython not found; skipping spaCy smoke test"
           fi
 
       - name: Upload dist artifact
