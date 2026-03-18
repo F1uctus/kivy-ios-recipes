@@ -21,10 +21,19 @@ class PreshedRecipe(CythonRecipe):
             "-m",
             "pip",
             "install",
-            "Cython==3.0.11",
+            "Cython==0.29.37",
             "cymem==2.0.13",
             "murmurhash==1.0.15",
         )
+
+    def get_recipe_env(self, plat):
+        env = super().get_recipe_env(plat)
+        site_packages = self.ctx.site_packages_dir
+        current = env.get("PYTHONPATH", "")
+        env["PYTHONPATH"] = (
+            f"{site_packages}:{current}" if current else site_packages
+        )
+        return env
 
     def biglink(self):
         dirs = []
