@@ -30,7 +30,6 @@ class PydanticCoreRecipe(PythonRecipe):
                 "maturin",
                 "build",
                 "--release",
-                "--no-sdist",
                 "--interpreter",
                 self.ctx.hostpython,
                 _env=env,
