@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import logging
 import os
+from glob import glob
+from os.path import join
 
 import sh
 from kivy_ios.context_managers import cd
@@ -45,6 +47,17 @@ class PydanticCoreRecipe(PythonRecipe):
                 self.ctx.hostpython,
                 _env=env,
             )
+
+    def install(self):
+        plat = list(self.platforms_to_build)[0]
+        build_dir = self.get_build_dir(plat)
+        wheels = sorted(glob(join(build_dir, "target", "wheels", "*.whl")))
+        if not wheels:
+            raise RuntimeError("pydantic-core wheel was not produced by maturin")
+        wheel_path = wheels[-1]
+        logger.info("Install pydantic-core wheel %s into site-packages", wheel_path)
+        with cd(self.ctx.site_packages_dir):
+            shprint(sh.unzip, "-o", wheel_path)
 
 
 recipe = PydanticCoreRecipe()
