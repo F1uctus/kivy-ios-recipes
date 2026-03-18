@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 
-import numpy
 import pydantic_core
 import spacy
 import thinc
@@ -12,7 +11,6 @@ import thinc
 
 def main() -> int:
     payload = {
-        "numpy": getattr(numpy, "__version__", None),
         "pydantic_core": getattr(pydantic_core, "__version__", None),
         "thinc": getattr(thinc, "__version__", None),
         "spacy": getattr(spacy, "__version__", None),

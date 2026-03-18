@@ -13,7 +13,6 @@ class ThincRecipe(CythonRecipe):
     url = "https://files.pythonhosted.org/packages/source/t/thinc/thinc-{version}.tar.gz"
     depends = [
         "python3",
-        "numpy",
         "murmurhash",
         "cymem",
         "preshed",

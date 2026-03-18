@@ -13,7 +13,6 @@ class SpacyRecipe(CythonRecipe):
     url = "https://files.pythonhosted.org/packages/source/s/spacy/spacy-{version}.tar.gz"
     depends = [
         "python3",
-        "numpy",
         "cymem",
         "preshed",
         "thinc",
