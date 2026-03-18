@@ -12,19 +12,20 @@ class PreshedRecipe(CythonRecipe):
     version = "3.0.12"
     url = "https://files.pythonhosted.org/packages/source/p/preshed/preshed-{version}.tar.gz"
     depends = ["python3", "cymem", "murmurhash"]
+    cythonize = False
 
     def install_hostpython_prerequisites(self):
-        super().install_hostpython_prerequisites()
         python = sh.Command(self.ctx.hostpython)
         shprint(
             python,
             "-m",
             "pip",
             "install",
-            "Cython==0.29.37",
             "cymem==2.0.13",
             "murmurhash==1.0.15",
         )
+        # Use generated C sources from the sdist instead of re-cythonizing.
+        shprint(python, "-m", "pip", "uninstall", "-y", "Cython")
 
     def get_recipe_env(self, plat):
         env = super().get_recipe_env(plat)
