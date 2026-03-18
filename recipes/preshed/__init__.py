@@ -16,7 +16,7 @@ class PreshedRecipe(CythonRecipe):
     def install_hostpython_prerequisites(self):
         super().install_hostpython_prerequisites()
         python = sh.Command(self.ctx.hostpython)
-        shprint(python, "-m", "pip", "install", "--upgrade", "cython")
+        shprint(python, "-m", "pip", "install", "Cython==3.0.11", "cymem==2.0.13")
 
     def biglink(self):
         dirs = []

@@ -25,7 +25,7 @@ class SpacyRecipe(CythonRecipe):
     def install_hostpython_prerequisites(self):
         super().install_hostpython_prerequisites()
         python = sh.Command(self.ctx.hostpython)
-        shprint(python, "-m", "pip", "install", "--upgrade", "cython")
+        shprint(python, "-m", "pip", "install", "Cython==3.0.11")
 
     def biglink(self):
         dirs = []
