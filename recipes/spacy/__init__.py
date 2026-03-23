@@ -46,9 +46,18 @@ class SpacyRecipe(CythonRecipe):
         setup_py = Path(self.build_dir) / "setup.py"
         if setup_py.exists():
             setup_content = setup_py.read_text()
-            needle = "ext_modules = cythonize(ext_modules, compiler_directives=COMPILER_DIRECTIVES)"
-            if needle in setup_content:
-                setup_py.write_text(setup_content.replace(needle, "# cythonize disabled in kivy-ios recipe\n    ext_modules = ext_modules", 1))
+            replacements = {
+                '"spacy/matcher/levenshtein.pyx"': '"spacy/matcher/levenshtein.c"',
+                'mod_path = name.replace(".", "/") + ".pyx"': 'mod_path = name.replace(".", "/") + ".cpp"',
+                "print(\"Cythonizing sources\")\n    ext_modules = cythonize(ext_modules, compiler_directives=COMPILER_DIRECTIVES)": (
+                    "print(\"Using generated C/C++ sources\")\n"
+                    "    ext_modules = ext_modules"
+                ),
+            }
+            for old, new in replacements.items():
+                if old in setup_content:
+                    setup_content = setup_content.replace(old, new, 1)
+            setup_py.write_text(setup_content)
         if self.has_marker("pydantic_patched"):
             return
         self.apply_patch("pydantic-beta.patch")
