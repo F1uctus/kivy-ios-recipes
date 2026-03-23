@@ -47,10 +47,15 @@ class SpacyRecipe(CythonRecipe):
         env["PYTHONPATH"] = (
             f"{site_packages}:{current}" if current else site_packages
         )
+        env["CYTHON_INCLUDE_PATH"] = site_packages
         return env
 
     def prebuild_platform(self, plat):
         super().prebuild_platform(plat)
+        python = sh.Command(self.ctx.hostpython)
+        # Earlier recipes may reinstall Cython 3.x; pin again right before
+        # spaCy build so Cython API/parser behavior stays stable.
+        shprint(python, "-m", "pip", "install", "Cython==0.29.37")
         if self.has_marker("pydantic_patched"):
             return
         self.apply_patch("pydantic-beta.patch")
