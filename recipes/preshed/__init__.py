@@ -4,6 +4,7 @@ import sh
 from fnmatch import filter as fnmatch_filter
 from os import walk
 from os.path import join
+from pathlib import Path
 
 from kivy_ios.toolchain import CythonRecipe, shprint
 
@@ -24,8 +25,9 @@ class PreshedRecipe(CythonRecipe):
             "cymem==2.0.13",
             "murmurhash==1.0.15",
         )
-        # Use generated C sources from the sdist instead of re-cythonizing.
-        shprint(python, "-m", "pip", "uninstall", "-y", "Cython")
+        # Preshed's setup.py still imports Cython.Build even when compiling from
+        # generated C sources, so keep a compatible Cython installed.
+        shprint(python, "-m", "pip", "install", "Cython==3.0.11")
 
     def get_recipe_env(self, plat):
         env = super().get_recipe_env(plat)
@@ -35,6 +37,26 @@ class PreshedRecipe(CythonRecipe):
             f"{site_packages}:{current}" if current else site_packages
         )
         return env
+
+    def prebuild_platform(self, plat):
+        super().prebuild_platform(plat)
+        # In CI, kivy-ios may uninstall Cython between dependency setup and
+        # compilation. Preshed can build from generated C sources, so make the
+        # setup import resilient when Cython is unavailable.
+        setup_py = Path(self.build_dir) / "setup.py"
+        if not setup_py.exists():
+            return
+        setup_content = setup_py.read_text()
+        needle = "from Cython.Build import cythonize\n"
+        replacement = (
+            "try:\n"
+            "    from Cython.Build import cythonize\n"
+            "except ModuleNotFoundError:\n"
+            "    def cythonize(modules, **kwargs):\n"
+            "        return modules\n"
+        )
+        if needle in setup_content and "def cythonize(modules, **kwargs):" not in setup_content:
+            setup_py.write_text(setup_content.replace(needle, replacement, 1))
 
     def biglink(self):
         dirs = []
