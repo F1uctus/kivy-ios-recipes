@@ -56,8 +56,18 @@ class PydanticCoreRecipe(PythonRecipe):
             raise RuntimeError("pydantic-core wheel was not produced by maturin")
         wheel_path = wheels[-1]
         logger.info("Install pydantic-core wheel %s into site-packages", wheel_path)
-        with cd(self.ctx.site_packages_dir):
-            shprint(sh.unzip, "-o", wheel_path)
+        # Use pip for wheel installation so .data payloads are correctly
+        # relocated; raw unzip can leave package files in the wrong location.
+        shprint(
+            sh.Command(self.ctx.hostpython),
+            "-m",
+            "pip",
+            "install",
+            "--no-deps",
+            "--target",
+            self.ctx.site_packages_dir,
+            wheel_path,
+        )
 
 
 recipe = PydanticCoreRecipe()
