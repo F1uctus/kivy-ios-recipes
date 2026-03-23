@@ -40,6 +40,15 @@ class SpacyRecipe(CythonRecipe):
         cmd = sh.Command(join(self.ctx.root_dir, "tools", "biglink"))
         shprint(cmd, join(self.build_dir, f"lib{self.name}.a"), *dirs)
 
+    def get_recipe_env(self, plat):
+        env = super().get_recipe_env(plat)
+        site_packages = self.ctx.site_packages_dir
+        current = env.get("PYTHONPATH", "")
+        env["PYTHONPATH"] = (
+            f"{site_packages}:{current}" if current else site_packages
+        )
+        return env
+
     def prebuild_platform(self, plat):
         super().prebuild_platform(plat)
         if self.has_marker("pydantic_patched"):
