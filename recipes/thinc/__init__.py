@@ -9,6 +9,7 @@ from kivy_ios.toolchain import CythonRecipe, shprint
 
 
 class ThincRecipe(CythonRecipe):
+    cythonize = False
     version = "8.3.10"
     url = "https://files.pythonhosted.org/packages/source/t/thinc/thinc-{version}.tar.gz"
     depends = [

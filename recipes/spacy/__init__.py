@@ -9,6 +9,7 @@ from kivy_ios.toolchain import CythonRecipe, shprint
 
 
 class SpacyRecipe(CythonRecipe):
+    cythonize = False
     version = "3.8.11"
     url = "https://files.pythonhosted.org/packages/source/s/spacy/spacy-{version}.tar.gz"
     depends = [
