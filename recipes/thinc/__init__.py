@@ -29,6 +29,15 @@ class ThincRecipe(CythonRecipe):
         # the pinned blis package available so `blis/cy.pxd` resolves.
         shprint(python, "-m", "pip", "install", "blis==1.3.3")
 
+    def get_recipe_env(self, plat):
+        env = super().get_recipe_env(plat)
+        site_packages = self.ctx.site_packages_dir
+        current = env.get("PYTHONPATH", "")
+        env["PYTHONPATH"] = (
+            f"{site_packages}:{current}" if current else site_packages
+        )
+        return env
+
     def biglink(self):
         dirs = []
         for root, _, filenames in walk(self.build_dir):
