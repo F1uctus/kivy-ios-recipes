@@ -4,7 +4,6 @@ import sh
 from fnmatch import filter as fnmatch_filter
 from os import walk
 from os.path import join
-from pathlib import Path
 
 from kivy_ios.toolchain import CythonRecipe, shprint
 
@@ -27,7 +26,9 @@ class SpacyRecipe(CythonRecipe):
     def install_hostpython_prerequisites(self):
         super().install_hostpython_prerequisites()
         python = sh.Command(self.ctx.hostpython)
-        shprint(python, "-m", "pip", "install", "Cython==3.0.11")
+        # SpaCy 3.8.x has Cython parser incompatibilities with newer Cython in
+        # this toolchain context; keep a 0.29.x build-time Cython for spaCy.
+        shprint(python, "-m", "pip", "install", "Cython==0.29.37")
 
     def biglink(self):
         dirs = []
@@ -41,23 +42,6 @@ class SpacyRecipe(CythonRecipe):
 
     def prebuild_platform(self, plat):
         super().prebuild_platform(plat)
-        # Build from generated C sources in sdist to avoid brittle transitive
-        # Cython .pxd resolution across spaCy stack recipes.
-        setup_py = Path(self.build_dir) / "setup.py"
-        if setup_py.exists():
-            setup_content = setup_py.read_text()
-            replacements = {
-                '"spacy/matcher/levenshtein.pyx"': '"spacy/matcher/levenshtein.c"',
-                'mod_path = name.replace(".", "/") + ".pyx"': 'mod_path = name.replace(".", "/") + ".cpp"',
-                "print(\"Cythonizing sources\")\n    ext_modules = cythonize(ext_modules, compiler_directives=COMPILER_DIRECTIVES)": (
-                    "print(\"Using generated C/C++ sources\")\n"
-                    "    ext_modules = ext_modules"
-                ),
-            }
-            for old, new in replacements.items():
-                if old in setup_content:
-                    setup_content = setup_content.replace(old, new, 1)
-            setup_py.write_text(setup_content)
         if self.has_marker("pydantic_patched"):
             return
         self.apply_patch("pydantic-beta.patch")
