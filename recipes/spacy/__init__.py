@@ -4,6 +4,7 @@ import sh
 from fnmatch import filter as fnmatch_filter
 from os import walk
 from os.path import join
+from pathlib import Path
 
 from kivy_ios.toolchain import CythonRecipe, shprint
 
@@ -40,6 +41,14 @@ class SpacyRecipe(CythonRecipe):
 
     def prebuild_platform(self, plat):
         super().prebuild_platform(plat)
+        # Build from generated C sources in sdist to avoid brittle transitive
+        # Cython .pxd resolution across spaCy stack recipes.
+        setup_py = Path(self.build_dir) / "setup.py"
+        if setup_py.exists():
+            setup_content = setup_py.read_text()
+            needle = "ext_modules = cythonize(ext_modules, compiler_directives=COMPILER_DIRECTIVES)"
+            if needle in setup_content:
+                setup_py.write_text(setup_content.replace(needle, "# cythonize disabled in kivy-ios recipe\n    ext_modules = ext_modules", 1))
         if self.has_marker("pydantic_patched"):
             return
         self.apply_patch("pydantic-beta.patch")
