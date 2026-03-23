@@ -25,6 +25,9 @@ class ThincRecipe(CythonRecipe):
         super().install_hostpython_prerequisites()
         python = sh.Command(self.ctx.hostpython)
         shprint(python, "-m", "pip", "install", "Cython==3.0.11")
+        # Thinc cimports `blis.cy` during Cythonization; ensure hostpython has
+        # the pinned blis package available so `blis/cy.pxd` resolves.
+        shprint(python, "-m", "pip", "install", "blis==1.3.3")
 
     def biglink(self):
         dirs = []
