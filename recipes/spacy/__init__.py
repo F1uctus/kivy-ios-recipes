@@ -27,9 +27,7 @@ class SpacyRecipe(CythonRecipe):
     def install_hostpython_prerequisites(self):
         super().install_hostpython_prerequisites()
         python = sh.Command(self.ctx.hostpython)
-        # SpaCy 3.8.x has Cython parser incompatibilities with newer Cython in
-        # this toolchain context; keep a 0.29.x build-time Cython for spaCy.
-        shprint(python, "-m", "pip", "install", "Cython==0.29.37")
+        shprint(python, "-m", "pip", "install", "Cython==3.0.11")
 
     def biglink(self):
         dirs = []
@@ -54,9 +52,9 @@ class SpacyRecipe(CythonRecipe):
     def prebuild_platform(self, plat):
         super().prebuild_platform(plat)
         python = sh.Command(self.ctx.hostpython)
-        # Earlier recipes may reinstall Cython 3.x; pin again right before
-        # spaCy build so Cython API/parser behavior stays stable.
-        shprint(python, "-m", "pip", "install", "Cython==0.29.37")
+        # Earlier recipes may override the Cython version; pin again right
+        # before spaCy build.
+        shprint(python, "-m", "pip", "install", "Cython==3.0.11")
         # Cython 0.29 rejects const assignment in this declaration while
         # compiling spaCy's pxd graph under our toolchain context.
         token_pxd = Path(self.build_dir) / "spacy" / "tokens" / "token.pxd"
