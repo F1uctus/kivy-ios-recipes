@@ -4,6 +4,7 @@ import sh
 from fnmatch import filter as fnmatch_filter
 from os import walk
 from os.path import join
+from pathlib import Path
 
 from kivy_ios.toolchain import CythonRecipe, shprint
 
@@ -56,6 +57,16 @@ class SpacyRecipe(CythonRecipe):
         # Earlier recipes may reinstall Cython 3.x; pin again right before
         # spaCy build so Cython API/parser behavior stays stable.
         shprint(python, "-m", "pip", "install", "Cython==0.29.37")
+        # Cython 0.29 rejects const assignment in this declaration while
+        # compiling spaCy's pxd graph under our toolchain context.
+        token_pxd = Path(self.build_dir) / "spacy" / "tokens" / "token.pxd"
+        if token_pxd.exists():
+            token_content = token_pxd.read_text()
+            token_content = token_content.replace(
+                "cdef const int MISSING_DEP = 0",
+                "cdef int MISSING_DEP = 0",
+            )
+            token_pxd.write_text(token_content)
         if self.has_marker("pydantic_patched"):
             return
         self.apply_patch("pydantic-beta.patch")
