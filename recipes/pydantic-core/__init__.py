@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class PydanticCoreRecipe(PythonRecipe):
     version = "2.42.0"
     url = "https://files.pythonhosted.org/packages/source/p/pydantic-core/pydantic_core-{version}.tar.gz"
-    depends = ["python3", "typing-extensions"]
+    depends = ["python3", "typing_extensions"]
     hostpython_prerequisites = ["maturin>=1.5.0"]
 
     def build_platform(self, plat):
