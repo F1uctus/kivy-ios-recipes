@@ -111,6 +111,7 @@ jobs:
           # Note: Running iOS-targeted Python on CI is non-trivial; this is a
           # pragmatic first gate for iterative development.
           if [ -x "dist/hostpython3/bin/python" ]; then
+            export PYTHONPATH="${GITHUB_WORKSPACE}/dist/root/python3/lib/python3.13/site-packages${PYTHONPATH:+:${PYTHONPATH}}"
             dist/hostpython3/bin/python -c "import sys; print(sys.version)"
             dist/hostpython3/bin/python scripts/smoke_test.py
           else
@@ -121,6 +122,7 @@ jobs:
         if: env.BUILD_SPACY == '1' && success()
         run: |
           if [ -x "dist/hostpython3/bin/python" ]; then
+            export PYTHONPATH="${GITHUB_WORKSPACE}/dist/root/python3/lib/python3.13/site-packages${PYTHONPATH:+:${PYTHONPATH}}"
             dist/hostpython3/bin/python scripts/smoke_test_spacy.py
           else
             echo "hostpython not found; skipping spaCy smoke test"
