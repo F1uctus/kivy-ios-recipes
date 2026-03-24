@@ -12,7 +12,7 @@ on:
           - iphoneos-arm64
           - iphonesimulator-arm64
       build_spacy:
-        description: "Also build spaCy stack and run strict spaCy smoke test"
+        description: "Also build spaCy stack and verify dist layout (import tests need simulator/device)"
         required: false
         default: false
         type: boolean
@@ -105,32 +105,30 @@ jobs:
       - name: Smoke test (hostpython)
         if: always()
         run: |
-          # This validates that the build produced a usable hostpython and that
-          # the pinned packages can import in the produced environment.
-          #
-          # Note: Running iOS-targeted Python on CI is non-trivial; this is a
-          # pragmatic first gate for iterative development.
+          # Hostpython is macOS CPython: use it only for stdlib / build sanity.
+          # Never point hostpython at iOS-built site-packages for import tests;
+          # native extensions (.so) are for iOS / iOS Simulator, not the host.
           if [ -x "dist/hostpython3/bin/python" ]; then
-            export PYTHONPATH="${GITHUB_WORKSPACE}/dist/root/python3/lib/python3.13/site-packages${PYTHONPATH:+:${PYTHONPATH}}"
             dist/hostpython3/bin/python -c "import sys; print(sys.version)"
             dist/hostpython3/bin/python scripts/smoke_test.py
           else
             echo "hostpython not found; skipping smoke test"
           fi
 
-      - name: Smoke test spaCy (strict, optional)
+      - name: Verify spaCy dist layout (no imports)
         if: env.BUILD_SPACY == '1' && success()
         run: |
-          if [ -x "dist/hostpython3/bin/python" ]; then
-            export PYTHONPATH="${GITHUB_WORKSPACE}/dist/root/python3/lib/python3.13/site-packages${PYTHONPATH:+:${PYTHONPATH}}"
-            dist/hostpython3/bin/python scripts/smoke_test_spacy.py
-          else
-            echo "hostpython not found; skipping spaCy smoke test"
-          fi
+          python3 scripts/ci/verify_spacy_dist_layout.py
 
       - name: Upload dist artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-python-dist-${{ env.PLATFORM }}
           path: ios-python-dist-${{ env.PLATFORM }}.zip
+
+# Import-based spaCy checks (scripts/smoke_test_spacy.py) must run in an iOS
+# process. Hosted macos-latest can drive the iOS Simulator (arm64, close to
+# Apple Silicon devices) via Xcode, but you still need an app target that embeds
+# libpython and bundles dist/root/python3, then xcodebuild/xctest or simctl.
+# Real devices are not available on GitHub-hosted runners.
 
