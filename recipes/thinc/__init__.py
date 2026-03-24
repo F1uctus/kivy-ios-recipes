@@ -20,6 +20,7 @@ class ThincRecipe(CythonRecipe):
         "blis",
         "srsly",
         "pydantic",
+        "catalogue",
     ]
 
     def install_hostpython_prerequisites(self):
