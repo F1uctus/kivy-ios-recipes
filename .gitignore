@@ -1,0 +1,7 @@
+.artifacts/
+ios/SpacySmoke/Generated/
+ios/SpacySmoke/build/
+ios/SpacySmoke/*.xcodeproj/
+*.xcworkspace/xcuserdata/
+__pycache__/
+*.py[cod]

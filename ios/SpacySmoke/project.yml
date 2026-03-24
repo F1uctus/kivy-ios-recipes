@@ -1,0 +1,51 @@
+name: SpacySmoke
+options:
+  bundleIdPrefix: dev.storyteller
+  deploymentTarget:
+    iOS: "15.0"
+configs:
+  Debug: debug
+  Release: release
+settings:
+  base:
+    # Set your team in Xcode after generate, or add DEVELOPMENT_TEAM here.
+    DEVELOPMENT_TEAM: ""
+targets:
+  SpacySmoke:
+    type: application
+    platform: iOS
+    deploymentTarget: "15.0"
+    sources:
+      - path: Sources
+      - path: Resources/smoke.py
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_NAME: SpacySmoke
+        PRODUCT_BUNDLE_IDENTIFIER: dev.storyteller.spacysmoke
+        INFOPLIST_FILE: Resources/Info.plist
+        CLANG_ENABLE_OBJC_ARC: YES
+        HEADER_SEARCH_PATHS: $(DIST_PATH)/root/python3/include/python3.13
+        LIBRARY_SEARCH_PATHS: $(DIST_PATH)/lib/iphoneos
+    configFiles:
+      Debug: Generated/Dist.xcconfig
+      Release: Generated/Dist.xcconfig
+    dependencies:
+      - sdk: libsqlite3.tbd
+      - sdk: libc++.tbd
+      - sdk: libz.tbd
+      - sdk: libbz2.tbd
+    preBuildScripts:
+      - name: Rsync python3 prefix into bundle Resources
+        basedOnDependencyAnalysis: false
+        script: |
+          set -euo pipefail
+          SRC="${DIST_PATH}/root/python3"
+          if [ ! -d "$SRC" ]; then
+            echo "error: set DIST_PATH in Generated/Dist.xcconfig (run scripts/ios/bootstrap_spacy_smoke_xcode.sh)" >&2
+            exit 1
+          fi
+          DEST="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/python3"
+          mkdir -p "$DEST"
+          rsync -a "${SRC}/" "$DEST/"
+          touch "$DEST/.rsync_stamp"
