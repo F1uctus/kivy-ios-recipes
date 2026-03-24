@@ -18,10 +18,22 @@ def main() -> int:
 
     # Toolchain expects each custom recipe path to end with the recipe folder name.
     # We output one argument per line for safe re-use in bash.
+    emitted: set[Path] = set()
     for name in recipe_names:
         p = repo_root / "recipes" / name
         if p.is_dir():
             print(f"--add-custom-recipe {p}")
+            emitted.add(p.resolve())
+
+    # Include any extra local recipes not listed in pins.json (for transitive
+    # runtime dependencies we add in custom recipes, e.g. typing_extensions).
+    for p in sorted((repo_root / "recipes").iterdir()):
+        if not p.is_dir():
+            continue
+        resolved = p.resolve()
+        if resolved in emitted:
+            continue
+        print(f"--add-custom-recipe {p}")
     return 0
 
 
