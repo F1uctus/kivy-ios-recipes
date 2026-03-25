@@ -62,6 +62,15 @@ class Python3Recipe(Recipe):
             py_arch = "aarch64"
 
         prefix = join(self.ctx.dist_dir, "root", "python3")
+        plat_desc = " ".join(
+            str(getattr(plat, attr, "")) for attr in ("name", "platform", "sysroot", "arch")
+        ).lower()
+        is_simulator = "simulator" in plat_desc
+        host_triple = (
+            "{}-apple-ios-simulator".format(py_arch)
+            if is_simulator
+            else "{}-apple-ios".format(py_arch)
+        )
         shprint(
             configure,
             "CC={}".format(build_env["CC"]),
@@ -114,7 +123,7 @@ class Python3Recipe(Recipe):
             "ac_cv_func_posix_spawn_file_actions_addclosefrom_np=no",
             "ac_cv_func_setns=no",
             "ac_cv_func_unshare=no",
-            "--host={}-apple-ios".format(py_arch),
+            "--host={}".format(host_triple),
             "--build=x86_64-apple-darwin",
             "--with-build-python={}".format(
                 join(self.ctx.dist_dir, "hostpython3", "bin", "python3")
