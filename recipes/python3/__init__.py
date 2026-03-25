@@ -62,15 +62,6 @@ class Python3Recipe(Recipe):
             py_arch = "aarch64"
 
         prefix = join(self.ctx.dist_dir, "root", "python3")
-        # Linking Python.framework for iphonesimulator fails on recent Xcode (linker
-        # exits building Python.framework/Python). Use a unix-style prefix install for
-        # simulator only; device builds keep --enable-framework (kivy-ios / mobile).
-        build_dir_marker = str(getattr(self, "build_dir", "") or "")
-        is_simulator = "simulator" in build_dir_marker.lower() or "simulator" in str(
-            getattr(plat, "name", "") or ""
-        ).lower()
-        framework_flag = "--disable-framework" if is_simulator else "--enable-framework"
-
         shprint(
             configure,
             "CC={}".format(build_env["CC"]),
@@ -131,7 +122,7 @@ class Python3Recipe(Recipe):
             "--prefix={}".format(prefix),
             "--without-ensurepip",
             "--enable-ipv6",
-            framework_flag,
+            "--enable-framework",
             "PYTHON_FOR_BUILD=_PYTHON_PROJECT_BASE=$(abs_builddir) "
             "_PYTHON_HOST_PLATFORM=$(_PYTHON_HOST_PLATFORM) "
             "PYTHONPATH=$(shell test -f pybuilddir.txt && echo $(abs_builddir)/`cat pybuilddir.txt`:)$(srcdir)/Lib "
@@ -146,34 +137,20 @@ class Python3Recipe(Recipe):
         build_env = self.get_build_env(plat)
         build_dir = self.get_build_dir(plat)
         prefix = join(self.ctx.dist_dir, "root", "python3")
-        is_simulator = "simulator" in str(build_dir).lower() or "simulator" in str(
-            getattr(plat, "name", "") or ""
-        ).lower()
-        if is_simulator:
-            shprint(
-                sh.make,
-                self.ctx.concurrent_make,
-                "-C",
-                build_dir,
-                "install",
-                "prefix={}".format(prefix),
-                _env=build_env,
-            )
-        else:
-            shprint(
-                sh.make,
-                self.ctx.concurrent_make,
-                "-C",
-                build_dir,
-                "install",
-                # CPython iOS installs as a framework and then rearranges headers via
-                # `frameworkinstallmobileheaders` using PYTHONFRAMEWORKPREFIX/INSTALLDIR.
-                # Point both at our chosen prefix so the header move doesn't fail.
-                "prefix={}".format(prefix),
-                "PYTHONFRAMEWORKPREFIX={}".format(prefix),
-                "PYTHONFRAMEWORKINSTALLDIR={}".format(join(prefix, "Python.framework")),
-                _env=build_env,
-            )
+        shprint(
+            sh.make,
+            self.ctx.concurrent_make,
+            "-C",
+            build_dir,
+            "install",
+            # CPython iOS installs as a framework and then rearranges headers via
+            # `frameworkinstallmobileheaders` using PYTHONFRAMEWORKPREFIX/INSTALLDIR.
+            # Point both at our chosen prefix so the header move doesn't fail.
+            "prefix={}".format(prefix),
+            "PYTHONFRAMEWORKPREFIX={}".format(prefix),
+            "PYTHONFRAMEWORKINSTALLDIR={}".format(join(prefix, "Python.framework")),
+            _env=build_env,
+        )
         self.reduce_python()
 
     def reduce_python(self):
