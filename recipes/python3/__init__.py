@@ -43,6 +43,18 @@ class Python3Recipe(Recipe):
 
     def get_build_env(self, plat):
         build_env = plat.get_env()
+        plat_desc = " ".join(
+            str(getattr(plat, attr, "")) for attr in ("name", "platform", "sysroot", "arch")
+        ).lower()
+        is_simulator = "simulator" in plat_desc
+        target_arch = "arm64" if plat.arch == "arm64" else plat.arch
+        if is_simulator:
+            # plat.get_env() currently resolves CC/CXX wrappers that can still emit
+            # device-only linker flags (-mios-version-min). For simulator, force
+            # an explicit iOS Simulator compiler target.
+            sim_target = f"{target_arch}-apple-ios13.0-simulator"
+            build_env["CC"] = f"xcrun --sdk iphonesimulator clang -target {sim_target}"
+            build_env["CXX"] = f"xcrun --sdk iphonesimulator clang++ -target {sim_target}"
         build_env["PATH"] = "{}:{}".format(
             join(self.ctx.dist_dir, "hostpython3", "bin"),
             os.environ["PATH"],
