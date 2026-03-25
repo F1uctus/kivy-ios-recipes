@@ -53,8 +53,20 @@ class Python3Recipe(Recipe):
             # device-only linker flags (-mios-version-min). For simulator, force
             # an explicit iOS Simulator compiler target.
             sim_target = f"{target_arch}-apple-ios13.0-simulator"
-            build_env["CC"] = f"xcrun --sdk iphonesimulator clang -target {sim_target}"
-            build_env["CXX"] = f"xcrun --sdk iphonesimulator clang++ -target {sim_target}"
+            build_dir = self.get_build_dir(plat)
+            os.makedirs(build_dir, exist_ok=True)
+            cc_wrapper = join(build_dir, "_sim_cc.sh")
+            cxx_wrapper = join(build_dir, "_sim_cxx.sh")
+            with open(cc_wrapper, "w", encoding="utf-8") as f:
+                f.write("#!/usr/bin/env bash\n")
+                f.write(f'exec xcrun --sdk iphonesimulator clang -target "{sim_target}" "$@"\n')
+            with open(cxx_wrapper, "w", encoding="utf-8") as f:
+                f.write("#!/usr/bin/env bash\n")
+                f.write(f'exec xcrun --sdk iphonesimulator clang++ -target "{sim_target}" "$@"\n')
+            os.chmod(cc_wrapper, 0o755)
+            os.chmod(cxx_wrapper, 0o755)
+            build_env["CC"] = cc_wrapper
+            build_env["CXX"] = cxx_wrapper
         build_env["PATH"] = "{}:{}".format(
             join(self.ctx.dist_dir, "hostpython3", "bin"),
             os.environ["PATH"],
